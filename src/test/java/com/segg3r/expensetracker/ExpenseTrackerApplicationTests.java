@@ -1,4 +1,4 @@
-package com.segg3r.expencetracker;
+package com.segg3r.expensetracker;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -7,7 +7,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class ExpenceTrackerApplicationTests {
+public class ExpenseTrackerApplicationTests {
 
 	@Test
 	public void contextLoads() {
