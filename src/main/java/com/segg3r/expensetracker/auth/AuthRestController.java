@@ -2,6 +2,7 @@ package com.segg3r.expensetracker.auth;
 
 import com.segg3r.expensetracker.user.User;
 import com.segg3r.expensetracker.user.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,6 +26,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 public class AuthRestController {
@@ -59,14 +61,18 @@ public class AuthRestController {
 			throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Username or password is not provided.");
 		}
 
+		log.info("Attempting to authenticate user '" + username + "'.");
 		Authentication authentication = new UsernamePasswordAuthenticationToken(username, password);
 		try {
 			authentication = authenticationManager.authenticate(authentication);
 		} catch (AuthenticationException e) {
+			log.warn("Could not authenticate user '" + username + "'. Username or password is not correct.", e);
 			throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Username or password is not correct.");
 		}
 
 		SecurityContextHolder.getContext().setAuthentication(authentication);
+
+		log.info("Successfully authenticated user '" + username + "'.");
 		response.sendRedirect("/home");
 	}
 
