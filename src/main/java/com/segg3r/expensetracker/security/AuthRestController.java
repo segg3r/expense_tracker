@@ -1,29 +1,23 @@
 package com.segg3r.expensetracker.security;
 
-import com.segg3r.expensetracker.user.User;
-import com.segg3r.expensetracker.user.UserRepository;
+import com.segg3r.expensetracker.security.exception.UserAuthenticationException;
+import com.segg3r.expensetracker.security.exception.UserInputValidationException;
+import com.segg3r.expensetracker.security.exception.UserRegistrationException;
+import com.segg3r.expensetracker.user.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -31,49 +25,43 @@ import java.util.Optional;
 public class AuthRestController {
 
 	@Autowired
-	private AuthenticationManager authenticationManager;
-	@Autowired
-	private PasswordEncoder passwordEncoder;
-	@Autowired
-	private UserRepository userRepository;
-	@Autowired
 	private SecurityContext securityContext;
+	@Autowired
+	private UserService userService;
 
-	@PostConstruct
-	public void setupUsers() {
-		Optional<User> existingAdmin = userRepository.findByName("admin");
-		if (!existingAdmin.isPresent()) {
-			User admin = User.builder()
-					.name("admin")
-					.password(passwordEncoder.encode("admin"))
-					.authorities(Collections.singletonList("admin"))
-					.build();
-			userRepository.insert(admin);
+	@RequestMapping(value = "/login", method = RequestMethod.POST, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+	public void login(HttpServletResponse response, @RequestParam MultiValueMap<String, String> map) {
+		try {
+			UsernamePassword usernamePassword = new UsernamePassword(map).validate();
+			authenticate(usernamePassword, response);
+		} catch (UserInputValidationException | UserAuthenticationException e) {
+			log.warn(e.getMessage(), e);
+			throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, e.getMessage());
 		}
 	}
 
 	@RequestMapping(value = "/login", method = RequestMethod.POST, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-	public void login(HttpServletResponse response, @RequestParam MultiValueMap<String, String> map) throws IOException {
-		String username = map.getFirst("username");
-		String password = map.getFirst("password");
-
-		if (username == null || password == null) {
-			throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Username or password is not provided.");
-		}
-
-		log.info("Attempting to authenticate user '" + username + "'.");
-		Authentication authentication = new UsernamePasswordAuthenticationToken(username, password);
+	public void register(HttpServletResponse response, @RequestParam MultiValueMap<String, String> map) {
 		try {
-			authentication = authenticationManager.authenticate(authentication);
-		} catch (AuthenticationException e) {
-			log.warn("Could not authenticate user '" + username + "'. Username or password is not correct.", e);
-			throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Username or password is not correct.");
+			UsernamePassword usernamePassword = new UsernamePassword(map).validate();
+			userService.register(usernamePassword);
+			authenticate(usernamePassword, response);
+		} catch (UserInputValidationException | UserRegistrationException e) {
+			log.warn(e.getMessage(), e);
+			throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, e.getMessage());
+		} catch (UserAuthenticationException e) {
+			log.error(e.getMessage(), e);
+			throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
 		}
-
-		securityContext.setAuthentication(authentication);
-
-		log.info("Successfully authenticated user '" + username + "'.");
-		response.sendRedirect("/home");
 	}
 
+	private void authenticate(UsernamePassword usernamePassword, HttpServletResponse response)
+			throws UserAuthenticationException {
+		try {
+			securityContext.authenticate(usernamePassword);
+			response.sendRedirect("/home");
+		} catch (IOException e) {
+			throw new UserAuthenticationException("Could not redirect user to /home page.");
+		}
+	}
 }

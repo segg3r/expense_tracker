@@ -1,9 +1,9 @@
 package com.segg3r.expensetracker.security;
 
-import org.springframework.security.core.Authentication;
+import com.segg3r.expensetracker.security.exception.UserAuthenticationException;
 
 public interface SecurityContext {
 
-	void setAuthentication(Authentication authentication);
+	void authenticate(UsernamePassword usernamePassword) throws UserAuthenticationException;
 
 }

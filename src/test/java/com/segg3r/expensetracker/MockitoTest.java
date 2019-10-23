@@ -1,11 +1,11 @@
 package com.segg3r.expensetracker;
 
 import org.mockito.MockitoAnnotations;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 
 public class MockitoTest {
 
-	@BeforeMethod
+	@BeforeClass
 	public void initMockito() {
 		MockitoAnnotations.initMocks(this);
 	}
