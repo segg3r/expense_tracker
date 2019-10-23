@@ -1,2 +1,1 @@
-- add logging configuration
-- cover login with simple unit test
+- registration endpoint

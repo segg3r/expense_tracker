@@ -1,4 +1,4 @@
-package com.segg3r.expensetracker.auth;
+package com.segg3r.expensetracker.security;
 
 import com.segg3r.expensetracker.user.User;
 import com.segg3r.expensetracker.user.UserRepository;

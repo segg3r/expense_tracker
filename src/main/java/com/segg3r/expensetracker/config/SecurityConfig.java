@@ -1,6 +1,6 @@
 package com.segg3r.expensetracker.config;
 
-import com.segg3r.expensetracker.auth.UserDetailsMongoService;
+import com.segg3r.expensetracker.security.UserDetailsMongoService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;

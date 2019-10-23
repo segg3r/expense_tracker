@@ -1,4 +1,4 @@
-package com.segg3r.expensetracker.auth;
+package com.segg3r.expensetracker.security;
 
 import com.segg3r.expensetracker.user.User;
 import com.segg3r.expensetracker.user.UserRepository;
@@ -22,7 +22,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -37,6 +36,8 @@ public class AuthRestController {
 	private PasswordEncoder passwordEncoder;
 	@Autowired
 	private UserRepository userRepository;
+	@Autowired
+	private SecurityContext securityContext;
 
 	@PostConstruct
 	public void setupUsers() {
@@ -51,8 +52,7 @@ public class AuthRestController {
 		}
 	}
 
-	@RequestMapping(value = "/login", method = RequestMethod.POST,
-			consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+	@RequestMapping(value = "/login", method = RequestMethod.POST, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
 	public void login(HttpServletResponse response, @RequestParam MultiValueMap<String, String> map) throws IOException {
 		String username = map.getFirst("username");
 		String password = map.getFirst("password");
@@ -70,7 +70,7 @@ public class AuthRestController {
 			throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Username or password is not correct.");
 		}
 
-		SecurityContextHolder.getContext().setAuthentication(authentication);
+		securityContext.setAuthentication(authentication);
 
 		log.info("Successfully authenticated user '" + username + "'.");
 		response.sendRedirect("/home");
