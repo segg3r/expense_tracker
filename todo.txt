@@ -1,2 +1,3 @@
-- registration endpoint
-- mongo session storage
+- add account endpoint
+- edit account endpoint
+- delete account endpoint
