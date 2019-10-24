@@ -40,7 +40,7 @@ public class AuthRestController {
 		}
 	}
 
-	@RequestMapping(value = "/login", method = RequestMethod.POST, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+	@RequestMapping(value = "/register", method = RequestMethod.POST, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
 	public void register(HttpServletResponse response, @RequestParam MultiValueMap<String, String> map) {
 		try {
 			UsernamePassword usernamePassword = new UsernamePassword(map).validate();

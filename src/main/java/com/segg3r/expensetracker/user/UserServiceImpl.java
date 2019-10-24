@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -13,6 +15,17 @@ public class UserServiceImpl implements UserService {
 	private UserRepository userRepository;
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+
+	@PostConstruct
+	void initAdmin() {
+		if (!userExists("admin")) {
+			User user = User.builder()
+					.name("admin")
+					.password(passwordEncoder.encode("admin"))
+					.build();
+			userRepository.insert(user);
+		}
+	}
 
 	@Override
 	public void register(UsernamePassword usernamePassword) throws UserRegistrationException {
@@ -25,7 +38,7 @@ public class UserServiceImpl implements UserService {
 
 		User user = User.builder()
 				.name(username)
-				.password(password)
+				.password(passwordEncoder.encode(password))
 				.build();
 		userRepository.insert(user);
 	}
