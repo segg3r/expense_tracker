@@ -44,7 +44,7 @@ public class AuthRestController {
 	public void register(HttpServletResponse response, @RequestParam MultiValueMap<String, String> map) {
 		try {
 			UsernamePassword usernamePassword = new UsernamePassword(map).validate();
-			userService.register(usernamePassword);
+			userService.createUser(usernamePassword);
 			authenticate(usernamePassword, response);
 		} catch (UserInputValidationException | UserRegistrationException e) {
 			log.warn(e.getMessage(), e);

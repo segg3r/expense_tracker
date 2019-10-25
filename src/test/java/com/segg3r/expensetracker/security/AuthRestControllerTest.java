@@ -137,12 +137,12 @@ public class AuthRestControllerTest extends MockitoTest {
 
 	private void givenSuccessfulRegistration() throws UserRegistrationException {
 		UsernamePassword usernamePassword = givenUsernamePassword();
-		doNothing().when(userService).register(usernamePassword);
+		doNothing().when(userService).createUser(usernamePassword);
 	}
 
 	private void givenFailedRegistration() throws UserRegistrationException {
 		UsernamePassword usernamePassword = givenUsernamePassword();
-		doThrow(new UserRegistrationException()).when(userService).register(eq(usernamePassword));
+		doThrow(new UserRegistrationException()).when(userService).createUser(eq(usernamePassword));
 	}
 
 	private UsernamePassword givenUsernamePassword() {

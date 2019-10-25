@@ -10,8 +10,12 @@ public class UsernamePassword {
 	private final String password;
 
 	public UsernamePassword(MultiValueMap<String, String> map) {
-		this.username = map.getFirst("username");
-		this.password = map.getFirst("password");
+		this(map.getFirst("username"), map.getFirst("password"));
+	}
+
+	public UsernamePassword(String username, String password) {
+		this.username = username;
+		this.password = password;
 	}
 
 	UsernamePassword validate() throws UserInputValidationException {

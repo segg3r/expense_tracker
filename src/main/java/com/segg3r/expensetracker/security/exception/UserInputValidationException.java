@@ -1,6 +1,6 @@
 package com.segg3r.expensetracker.security.exception;
 
-public class UserInputValidationException extends Exception {
+public class UserInputValidationException extends SecurityException {
 
 	public UserInputValidationException() {
 	}

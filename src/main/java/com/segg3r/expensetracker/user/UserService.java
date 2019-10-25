@@ -5,6 +5,7 @@ import com.segg3r.expensetracker.security.exception.UserRegistrationException;
 
 public interface UserService {
 
-	void register(UsernamePassword usernamePassword) throws UserRegistrationException;
+	User createUser(UsernamePassword usernamePassword) throws UserRegistrationException;
 
+	boolean userExists(String username);
 }

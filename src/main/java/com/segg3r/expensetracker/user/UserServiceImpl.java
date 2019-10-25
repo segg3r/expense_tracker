@@ -16,19 +16,8 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
-	@PostConstruct
-	void initAdmin() {
-		if (!userExists("admin")) {
-			User user = User.builder()
-					.name("admin")
-					.password(passwordEncoder.encode("admin"))
-					.build();
-			userRepository.insert(user);
-		}
-	}
-
 	@Override
-	public void register(UsernamePassword usernamePassword) throws UserRegistrationException {
+	public User createUser(UsernamePassword usernamePassword) throws UserRegistrationException {
 		String username = usernamePassword.getUsername();
 		String password = usernamePassword.getPassword();
 
@@ -40,10 +29,11 @@ public class UserServiceImpl implements UserService {
 				.name(username)
 				.password(passwordEncoder.encode(password))
 				.build();
-		userRepository.insert(user);
+		return userRepository.insert(user);
 	}
 
-	private boolean userExists(String username) {
+	@Override
+	public boolean userExists(String username) {
 		return userRepository.findByName(username).isPresent();
 	}
 

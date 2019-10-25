@@ -1,6 +1,6 @@
 package com.segg3r.expensetracker.security.exception;
 
-public class UserRegistrationException extends Exception {
+public class UserRegistrationException extends SecurityException {
 
 	public UserRegistrationException() {
 	}
