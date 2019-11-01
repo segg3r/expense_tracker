@@ -1,4 +1,6 @@
-package com.segg3r.expensetracker.security.exception;
+package com.segg3r.expensetracker.user.exception;
+
+import com.segg3r.expensetracker.security.exception.SecurityException;
 
 public class UserCreationException extends SecurityException {
 

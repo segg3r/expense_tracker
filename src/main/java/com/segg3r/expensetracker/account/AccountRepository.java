@@ -6,4 +6,5 @@ import java.util.Optional;
 
 public interface AccountRepository extends MongoRepository<Account, String> {
 	Optional<Account> findByUserIdAndName(String userId, String name);
+	void deleteByUserId(String userId);
 }

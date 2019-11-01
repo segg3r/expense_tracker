@@ -1,5 +1,4 @@
-- add transaction manager
-    - cover user registration with it
+- delete user
 - transfer from account to account
     - transaction
 - test coverage for account domain

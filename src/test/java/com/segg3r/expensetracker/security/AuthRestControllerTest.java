@@ -2,7 +2,7 @@ package com.segg3r.expensetracker.security;
 
 import com.segg3r.expensetracker.MockitoTest;
 import com.segg3r.expensetracker.security.exception.UserAuthenticationException;
-import com.segg3r.expensetracker.security.exception.UserRegistrationException;
+import com.segg3r.expensetracker.user.exception.UserRegistrationException;
 import com.segg3r.expensetracker.user.User;
 import com.segg3r.expensetracker.user.UserRegistrationService;
 import org.mockito.InjectMocks;

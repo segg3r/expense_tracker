@@ -1,7 +1,7 @@
 package com.segg3r.expensetracker.user;
 
 import com.segg3r.expensetracker.security.UsernamePassword;
-import com.segg3r.expensetracker.security.exception.UserCreationException;
+import com.segg3r.expensetracker.user.exception.UserCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -40,6 +40,11 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public Optional<User> findByName(String username) {
 		return userRepository.findByName(username);
+	}
+
+	@Override
+	public void deleteUser(User user) {
+		userRepository.deleteById(user.getId());
 	}
 
 }

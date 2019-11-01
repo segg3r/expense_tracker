@@ -3,8 +3,8 @@ package com.segg3r.expensetracker.user;
 import com.segg3r.expensetracker.account.AccountService;
 import com.segg3r.expensetracker.account.exception.AccountCreationException;
 import com.segg3r.expensetracker.security.UsernamePassword;
-import com.segg3r.expensetracker.security.exception.UserCreationException;
-import com.segg3r.expensetracker.security.exception.UserRegistrationException;
+import com.segg3r.expensetracker.user.exception.UserCreationException;
+import com.segg3r.expensetracker.user.exception.UserRegistrationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,8 +25,7 @@ public class UserRegistrationServiceImpl implements UserRegistrationService {
 
 	@PostConstruct
 	void initAdmin() throws UserRegistrationException {
-		userRepository.findByName("admin")
-				.ifPresent(user -> userRepository.deleteById(user.getId()));
+		userRepository.findByName("admin").ifPresent(this::unregisterUser);
 
 		UsernamePassword usernamePassword = new UsernamePassword("admin", "admin");
 		this.registerUser(usernamePassword);
@@ -52,6 +51,16 @@ public class UserRegistrationServiceImpl implements UserRegistrationService {
 		} catch (AccountCreationException e) {
 			throw new UserRegistrationException("Could not create account during user registration.", e);
 		}
+	}
+
+	@Override
+	public void unregisterUser(User user) {
+		log.info("Attempting to unregister user '" + user.getName() + "'.");
+
+		accountService.deleteUserAccounts(user);
+		userService.deleteUser(user);
+
+		log.info("Successfully unregistered user '" + user.getName() + "'.");
 	}
 
 }
