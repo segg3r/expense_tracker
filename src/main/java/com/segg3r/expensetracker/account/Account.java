@@ -18,9 +18,9 @@ import javax.validation.constraints.NotNull;
 @Document
 public class Account {
 	@Id
-	private ObjectId id;
+	private String id;
 	@NotNull(message = "Account user is not specified.")
-	private ObjectId userId;
+	private String userId;
 	@NotNull(message = "Account name is not specified.")
 	private String name;
 	@Min(value = 0, message = "Amount of money on account cannot be less than 0.")

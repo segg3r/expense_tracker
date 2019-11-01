@@ -36,7 +36,7 @@ public class SecurityContextImpl implements SecurityContext {
 			throw new UserAuthenticationException("Username or password is not correct.");
 		}
 
-		log.info("Successfully authentication user '" + usernamePassword.getUsername() + "'.");
+		log.info("Successfully authenticated user '" + usernamePassword.getUsername() + "'.");
 		this.setAuthentication(authentication);
 	}
 

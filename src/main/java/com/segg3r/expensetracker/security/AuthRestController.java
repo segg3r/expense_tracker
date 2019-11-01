@@ -3,7 +3,8 @@ package com.segg3r.expensetracker.security;
 import com.segg3r.expensetracker.security.exception.UserAuthenticationException;
 import com.segg3r.expensetracker.security.exception.UserInputValidationException;
 import com.segg3r.expensetracker.security.exception.UserRegistrationException;
-import com.segg3r.expensetracker.user.UserService;
+import com.segg3r.expensetracker.user.User;
+import com.segg3r.expensetracker.user.UserRegistrationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,7 +28,7 @@ public class AuthRestController {
 	@Autowired
 	private SecurityContext securityContext;
 	@Autowired
-	private UserService userService;
+	private UserRegistrationService userRegistrationService;
 
 	@RequestMapping(value = "/login", method = RequestMethod.POST, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
 	public void login(HttpServletResponse response, @RequestParam MultiValueMap<String, String> map) {
@@ -41,11 +42,13 @@ public class AuthRestController {
 	}
 
 	@RequestMapping(value = "/register", method = RequestMethod.POST, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-	public void register(HttpServletResponse response, @RequestParam MultiValueMap<String, String> map) {
+	public User register(HttpServletResponse response, @RequestParam MultiValueMap<String, String> map) {
 		try {
 			UsernamePassword usernamePassword = new UsernamePassword(map).validate();
-			userService.createUser(usernamePassword);
+			User user = userRegistrationService.registerUser(usernamePassword);
 			authenticate(usernamePassword, response);
+
+			return user;
 		} catch (UserInputValidationException | UserRegistrationException e) {
 			log.warn(e.getMessage(), e);
 			throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -64,4 +67,5 @@ public class AuthRestController {
 			throw new UserAuthenticationException("Could not redirect user to /home page.");
 		}
 	}
+
 }

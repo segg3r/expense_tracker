@@ -1,4 +1,24 @@
-- edit account endpoint
-- delete account endpoint
+- add transaction manager
+    - cover user registration with it
 - transfer from account to account
-    - add transaction manager
+    - transaction
+- test coverage for account domain
+
+Plans:
+    - user based (registration / login)
+    - user can configure accounts
+        - there should be two default accounts (salary account, cash)
+        - user can create a account, select name, currency
+    - user can configure spending categories
+        - there should be default categories (like "food", "car", "public transport", "utilities", etc.)
+        - user should be able to create and edit categories (name, icon)
+    - user can configure income categories
+        ... (similar to spending categories)
+    - user can add income/spending to each account
+        - he should select category and input a sum, optionally a description
+    - user can transfer money between accounts
+        - select two accounts
+        - input a sum
+            - if accounts are with different currencies - input a sum for each of them (conversion rate should be displayed)
+        - optionally input transfer fee
+    - user can see income/outcome report by any date range in some form of pie chart (by default current month)

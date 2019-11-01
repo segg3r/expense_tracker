@@ -1,10 +1,7 @@
 package com.segg3r.expensetracker.user;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.bson.types.ObjectId;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,10 +16,12 @@ import static java.util.stream.Collectors.toList;
 @AllArgsConstructor
 @Builder
 @Document
+@EqualsAndHashCode(of = "id")
 public class User {
 	@Id
-	private ObjectId id;
+	private String id;
 	private String name;
+	@JsonIgnore
 	private String password;
 	private List<String> authorities;
 

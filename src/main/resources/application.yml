@@ -4,5 +4,6 @@ spring:
       host: localhost
       port: 27018
       database: expense_tracker
+      transactional: false
   session:
     store-type: mongodb

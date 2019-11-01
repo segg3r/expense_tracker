@@ -3,7 +3,8 @@ package com.segg3r.expensetracker.security;
 import com.segg3r.expensetracker.MockitoTest;
 import com.segg3r.expensetracker.security.exception.UserAuthenticationException;
 import com.segg3r.expensetracker.security.exception.UserRegistrationException;
-import com.segg3r.expensetracker.user.UserService;
+import com.segg3r.expensetracker.user.User;
+import com.segg3r.expensetracker.user.UserRegistrationService;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -11,6 +12,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
@@ -23,13 +25,14 @@ import static org.mockito.Mockito.*;
 
 public class AuthRestControllerTest extends MockitoTest {
 
+	private static final String USER_ID = "id";
 	private static final String LOGIN = "login";
 	private static final String PASSWORD = "password";
 
 	@Mock
 	private SecurityContext securityContext;
 	@Mock
-	private UserService userService;
+	private UserRegistrationService userRegistrationService;
 	@InjectMocks
 	private AuthRestController controller;
 
@@ -41,7 +44,7 @@ public class AuthRestControllerTest extends MockitoTest {
 	}
 
 	@Test(description = "should successfully login the user and redirect to login page")
-	public void testLogin_Success() throws IOException, UserAuthenticationException {
+	public void testLogin_Success() throws Exception {
 		givenSuccessfulAuthentication();
 		tryToLogin();
 
@@ -69,14 +72,19 @@ public class AuthRestControllerTest extends MockitoTest {
 	}
 
 	@Test(description = "should successfully register")
-	public void testRegister_Success() throws UserAuthenticationException, UserRegistrationException, IOException {
+	public void testRegister_Success() throws Exception {
 		givenSuccessfulAuthentication();
 		givenSuccessfulRegistration();
 
-		tryToRegister();
+		User user = tryToRegister();
 
 		verifyAuthenticated();
 		verifyRedirectedToHomePage();
+		verifyRegisteredUser(user);
+	}
+
+	private void verifyRegisteredUser(User user) {
+		Assert.assertEquals(user, givenSuccessfullyCreatedUser());
 	}
 
 	@Test(description = "should return 400, if login is empty on login",
@@ -93,14 +101,14 @@ public class AuthRestControllerTest extends MockitoTest {
 
 	@Test(description = "should return 400, if registration failed",
 			expectedExceptions = HttpClientErrorException.class)
-	public void testRegister_FailedRegistration() throws UserRegistrationException {
+	public void testRegister_FailedRegistration() throws Exception {
 		givenFailedRegistration();
 		tryToRegister();
 	}
 
 	@Test(description = "should return 500, if authentication is failed for some reason after successful registration",
 			expectedExceptions = HttpServerErrorException.class)
-	public void testRegister_FailedAuthentication() throws UserAuthenticationException, UserRegistrationException {
+	public void testRegister_FailedAuthentication() throws Exception {
 		givenSuccessfulRegistration();
 		givenFailedAuthentication();
 
@@ -116,13 +124,13 @@ public class AuthRestControllerTest extends MockitoTest {
 		controller.login(this.response, givenAuthenticationData(username, password));
 	}
 
-	private void tryToRegister() {
-		this.tryToRegister(LOGIN, PASSWORD);
+	private User tryToRegister() {
+		return this.tryToRegister(LOGIN, PASSWORD);
 	}
 
-	private void tryToRegister(String username, String password) {
+	private User tryToRegister(String username, String password) {
 		this.response = givenMockedResponse();
-		controller.register(this.response, givenAuthenticationData(username, password));
+		return controller.register(this.response, givenAuthenticationData(username, password));
 	}
 
 	private void givenSuccessfulAuthentication() throws UserAuthenticationException {
@@ -137,12 +145,21 @@ public class AuthRestControllerTest extends MockitoTest {
 
 	private void givenSuccessfulRegistration() throws UserRegistrationException {
 		UsernamePassword usernamePassword = givenUsernamePassword();
-		doNothing().when(userService).createUser(usernamePassword);
+		User user = givenSuccessfullyCreatedUser();
+		doReturn(user).when(userRegistrationService).registerUser(usernamePassword);
+	}
+
+	private User givenSuccessfullyCreatedUser() {
+		return User.builder()
+				.id(USER_ID)
+				.name(LOGIN)
+				.password(PASSWORD)
+				.build();
 	}
 
 	private void givenFailedRegistration() throws UserRegistrationException {
 		UsernamePassword usernamePassword = givenUsernamePassword();
-		doThrow(new UserRegistrationException()).when(userService).createUser(eq(usernamePassword));
+		doThrow(new UserRegistrationException()).when(userRegistrationService).registerUser(eq(usernamePassword));
 	}
 
 	private UsernamePassword givenUsernamePassword() {
