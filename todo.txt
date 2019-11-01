@@ -1,4 +1,3 @@
-- delete user
 - transfer from account to account
     - transaction
 - test coverage for account domain

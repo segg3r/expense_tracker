@@ -23,6 +23,9 @@ public class Account {
 	private String userId;
 	@NotNull(message = "Account name is not specified.")
 	private String name;
+	/**
+	 * Last two decimals are cents to avoid floating point errors.
+	 */
 	@Min(value = 0, message = "Amount of money on account cannot be less than 0.")
 	private long amount;
 	@NotNull(message = "Account currency is not specified.")

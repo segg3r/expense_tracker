@@ -2,7 +2,9 @@ package com.segg3r.expensetracker.account;
 
 import com.segg3r.expensetracker.account.exception.AccountCreationException;
 import com.segg3r.expensetracker.account.exception.AccountEditException;
+import com.segg3r.expensetracker.account.exception.AccountMoneyTransferException;
 import com.segg3r.expensetracker.account.model.AccountCreationModel;
+import com.segg3r.expensetracker.security.SecurityContext;
 import com.segg3r.expensetracker.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,8 @@ public class AccountServiceImpl implements AccountService {
 
 	@Autowired
 	private AccountRepository accountRepository;
+	@Autowired
+	private SecurityContext securityContext;
 
 	@Override
 	public Optional<Account> getAccount(String id) {
@@ -71,6 +75,38 @@ public class AccountServiceImpl implements AccountService {
 	@Override
 	public void deleteUserAccounts(User user) {
 		accountRepository.deleteByUserId(user.getId());
+	}
+
+	@Override
+	public void transferBetweenAccounts(AccountMoneyTransfer accountMoneyTransfer) throws AccountMoneyTransferException {
+		User user = securityContext.getCurrentUser();
+		validateAccountMoneyTransfer(user, accountMoneyTransfer);
+		performAccountMoneyTransfer(accountMoneyTransfer);
+	}
+
+	private void validateAccountMoneyTransfer(
+			User user, AccountMoneyTransfer accountMoneyTransfer) throws AccountMoneyTransferException {
+		Account from = accountRepository.findById(accountMoneyTransfer.getFromAccountId())
+				.orElseThrow(() -> new AccountMoneyTransferException("Could not find account to transfer money from."));
+		Account to = accountRepository.findById(accountMoneyTransfer.getToAccountId())
+				.orElseThrow(() -> new AccountMoneyTransferException("Could not find account to transfer money to."));
+
+		validateAccountsBelongToUser(user, Arrays.asList(from, to));
+		validateAccountHaveEnoughMoney(from, accountMoneyTransfer.getAmount());
+	}
+
+	private void validateAccountsBelongToUser(User user, List<Account> accounts) throws AccountMoneyTransferException {
+		for (Account account : accounts) {
+			if (!account.getUserId().equals(user.getId())) {
+				throw new AccountMoneyTransferException("One of the accounts does not belong to the user.");
+			}
+		}
+	}
+
+	private void validateAccountHaveEnoughMoney(Account from, long amount) throws AccountMoneyTransferException {
+		if (from.getAmount() < amount) {
+			throw new AccountMoneyTransferException("Account '" + from.getName() + "' does not have enough currency.");
+		}
 	}
 
 }

@@ -2,6 +2,7 @@ package com.segg3r.expensetracker.account;
 
 import com.segg3r.expensetracker.account.exception.AccountCreationException;
 import com.segg3r.expensetracker.account.exception.AccountEditException;
+import com.segg3r.expensetracker.account.exception.AccountMoneyTransferException;
 import com.segg3r.expensetracker.user.User;
 
 import java.util.Optional;
@@ -13,4 +14,5 @@ public interface AccountService {
 	void editAccount(Account account) throws AccountEditException;
 	void deleteAccount(Account account);
 	void deleteUserAccounts(User user);
+	void transferBetweenAccounts(AccountMoneyTransfer accountMoneyTransfer) throws AccountMoneyTransferException;
 }
