@@ -23,8 +23,12 @@ public class AccountServiceImpl implements AccountService {
 			new AccountCreationModel("Cash", Currency.USD),
 			new AccountCreationModel("Debit Card", Currency.USD)));
 
+	private static final double CONVERSION_MULTIPLIER = 0.01;
+
 	@Autowired
 	private AccountRepository accountRepository;
+	@Autowired
+	private AccountMoneyTransferRepository accountMoneyTransferRepository;
 	@Autowired
 	private SecurityContext securityContext;
 
@@ -78,21 +82,18 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
-	public void transferBetweenAccounts(AccountMoneyTransfer accountMoneyTransfer) throws AccountMoneyTransferException {
+	public void transferBetweenAccounts(AccountMoneyTransfer transfer) throws AccountMoneyTransferException {
 		User user = securityContext.getCurrentUser();
-		validateAccountMoneyTransfer(user, accountMoneyTransfer);
-		performAccountMoneyTransfer(accountMoneyTransfer);
+		validateAccountMoneyTransfer(user, transfer);
+		performAccountMoneyTransfer(transfer);
 	}
 
-	private void validateAccountMoneyTransfer(
-			User user, AccountMoneyTransfer accountMoneyTransfer) throws AccountMoneyTransferException {
-		Account from = accountRepository.findById(accountMoneyTransfer.getFromAccountId())
-				.orElseThrow(() -> new AccountMoneyTransferException("Could not find account to transfer money from."));
-		Account to = accountRepository.findById(accountMoneyTransfer.getToAccountId())
-				.orElseThrow(() -> new AccountMoneyTransferException("Could not find account to transfer money to."));
+	private void validateAccountMoneyTransfer(User user, AccountMoneyTransfer transfer) throws AccountMoneyTransferException {
+		Account from = getTransferFromAccount(transfer);
+		Account to = getTransferToAccount(transfer);
 
 		validateAccountsBelongToUser(user, Arrays.asList(from, to));
-		validateAccountHaveEnoughMoney(from, accountMoneyTransfer.getAmount());
+		validateAccountHaveEnoughMoney(from, transfer.getAmount());
 	}
 
 	private void validateAccountsBelongToUser(User user, List<Account> accounts) throws AccountMoneyTransferException {
@@ -107,6 +108,28 @@ public class AccountServiceImpl implements AccountService {
 		if (from.getAmount() < amount) {
 			throw new AccountMoneyTransferException("Account '" + from.getName() + "' does not have enough currency.");
 		}
+	}
+
+	private void performAccountMoneyTransfer(AccountMoneyTransfer transfer) throws AccountMoneyTransferException {
+		Account from = getTransferFromAccount(transfer);
+		from.subtractMoney(transfer.getAmount());
+		accountRepository.save(from);
+
+		Account to = getTransferToAccount(transfer);
+		to.addMoney((long)(transfer.getAmount() * transfer.getConversionRate() * CONVERSION_MULTIPLIER));
+		accountRepository.save(to);
+
+		accountMoneyTransferRepository.save(transfer);
+	}
+
+	private Account getTransferFromAccount(AccountMoneyTransfer accountMoneyTransfer) throws AccountMoneyTransferException {
+		return accountRepository.findById(accountMoneyTransfer.getFromAccountId())
+				.orElseThrow(() -> new AccountMoneyTransferException("Could not find account to transfer money from."));
+	}
+
+	private Account getTransferToAccount(AccountMoneyTransfer accountMoneyTransfer) throws AccountMoneyTransferException {
+		return accountRepository.findById(accountMoneyTransfer.getToAccountId())
+				.orElseThrow(() -> new AccountMoneyTransferException("Could not find account to transfer money to."));
 	}
 
 }

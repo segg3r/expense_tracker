@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -17,6 +16,7 @@ import javax.validation.constraints.NotNull;
 @Builder
 @Document
 public class Account {
+
 	@Id
 	private String id;
 	@NotNull(message = "Account user is not specified.")
@@ -30,4 +30,13 @@ public class Account {
 	private long amount;
 	@NotNull(message = "Account currency is not specified.")
 	private Currency currency;
+
+	void subtractMoney(long amount) {
+		this.amount -= amount;
+	}
+
+	void addMoney(long amount) {
+		this.amount += amount;
+	}
+
 }
