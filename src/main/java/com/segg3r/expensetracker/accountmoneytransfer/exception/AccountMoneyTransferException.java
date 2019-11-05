@@ -1,4 +1,4 @@
-package com.segg3r.expensetracker.account.exception;
+package com.segg3r.expensetracker.accountmoneytransfer.exception;
 
 public class AccountMoneyTransferException extends Exception {
 	public AccountMoneyTransferException() {

@@ -1,9 +1,12 @@
 package com.segg3r.expensetracker.account;
 
 import com.segg3r.expensetracker.account.exception.AccountCreationException;
+import com.segg3r.expensetracker.account.exception.AccountDeletionException;
 import com.segg3r.expensetracker.account.exception.AccountEditException;
-import com.segg3r.expensetracker.account.exception.AccountMoneyTransferException;
+import com.segg3r.expensetracker.accountmoneytransfer.exception.AccountMoneyTransferException;
 import com.segg3r.expensetracker.account.model.AccountCreationModel;
+import com.segg3r.expensetracker.accountmoneytransfer.AccountMoneyTransfer;
+import com.segg3r.expensetracker.accountmoneytransfer.AccountMoneyTransferRepository;
 import com.segg3r.expensetracker.security.SecurityContext;
 import com.segg3r.expensetracker.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +64,7 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
-	public void editAccount(@Valid Account account) throws AccountEditException {
+	public Account editAccount(@Valid Account account) throws AccountEditException {
 		Optional<Account> existingAccount = accountRepository.findByUserIdAndName(account.getUserId(), account.getName());
 		if (existingAccount.isPresent() && !existingAccount.get().getId().equals(account.getId())) {
 			throw new AccountEditException("Could not edit account '" + account.getName() + "'. " +
@@ -69,11 +72,16 @@ public class AccountServiceImpl implements AccountService {
 		}
 
 		accountRepository.save(account);
+		return account;
 	}
 
 	@Override
-	public void deleteAccount(Account account) {
-		accountRepository.delete(account);
+	public Account deleteAccount(String accountId) throws AccountDeletionException {
+		Account existingAccount = accountRepository.findById(accountId)
+				.orElseThrow(() -> new AccountDeletionException("Could not find account " + accountId + " to delete."));
+
+		accountRepository.delete(existingAccount);
+		return existingAccount;
 	}
 
 	@Override
@@ -82,26 +90,26 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
-	public void transferBetweenAccounts(AccountMoneyTransfer transfer) throws AccountMoneyTransferException {
-		User user = securityContext.getCurrentUser();
-		validateAccountMoneyTransfer(user, transfer);
-		performAccountMoneyTransfer(transfer);
+	public AccountMoneyTransfer transferBetweenAccounts(AccountMoneyTransfer transfer) throws AccountMoneyTransferException {
+		validateAccountMoneyTransfer(transfer);
+		return performAccountMoneyTransfer(transfer);
 	}
 
-	private void validateAccountMoneyTransfer(User user, AccountMoneyTransfer transfer) throws AccountMoneyTransferException {
+	@Override
+	public List<Account> getUserAccounts(User user) {
+		return accountRepository.findByUserId(user.getId());
+	}
+
+	@Override
+	public boolean isUserAccountOwner(User user, String accountId) {
+		return accountRepository.findById(accountId)
+				.filter(existingAccount -> user.getId().equals(existingAccount.getUserId()))
+				.isPresent();
+	}
+
+	private void validateAccountMoneyTransfer(AccountMoneyTransfer transfer) throws AccountMoneyTransferException {
 		Account from = getTransferFromAccount(transfer);
-		Account to = getTransferToAccount(transfer);
-
-		validateAccountsBelongToUser(user, Arrays.asList(from, to));
 		validateAccountHaveEnoughMoney(from, transfer.getAmount());
-	}
-
-	private void validateAccountsBelongToUser(User user, List<Account> accounts) throws AccountMoneyTransferException {
-		for (Account account : accounts) {
-			if (!account.getUserId().equals(user.getId())) {
-				throw new AccountMoneyTransferException("One of the accounts does not belong to the user.");
-			}
-		}
 	}
 
 	private void validateAccountHaveEnoughMoney(Account from, long amount) throws AccountMoneyTransferException {
@@ -110,7 +118,7 @@ public class AccountServiceImpl implements AccountService {
 		}
 	}
 
-	private void performAccountMoneyTransfer(AccountMoneyTransfer transfer) throws AccountMoneyTransferException {
+	private AccountMoneyTransfer performAccountMoneyTransfer(AccountMoneyTransfer transfer) throws AccountMoneyTransferException {
 		Account from = getTransferFromAccount(transfer);
 		from.subtractMoney(transfer.getAmount());
 		accountRepository.save(from);
@@ -119,7 +127,7 @@ public class AccountServiceImpl implements AccountService {
 		to.addMoney((long)(transfer.getAmount() * transfer.getConversionRate() * CONVERSION_MULTIPLIER));
 		accountRepository.save(to);
 
-		accountMoneyTransferRepository.save(transfer);
+		return accountMoneyTransferRepository.save(transfer);
 	}
 
 	private Account getTransferFromAccount(AccountMoneyTransfer accountMoneyTransfer) throws AccountMoneyTransferException {

@@ -1,4 +1,4 @@
-package com.segg3r.expensetracker.account;
+package com.segg3r.expensetracker.accountmoneytransfer;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 

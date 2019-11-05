@@ -1,9 +1,9 @@
 package com.segg3r.expensetracker.account;
 
 import com.segg3r.expensetracker.MockitoTest;
-import com.segg3r.expensetracker.account.exception.AccountMoneyTransferException;
-import com.segg3r.expensetracker.security.SecurityContext;
-import com.segg3r.expensetracker.user.User;
+import com.segg3r.expensetracker.accountmoneytransfer.exception.AccountMoneyTransferException;
+import com.segg3r.expensetracker.accountmoneytransfer.AccountMoneyTransfer;
+import com.segg3r.expensetracker.accountmoneytransfer.AccountMoneyTransferRepository;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testng.annotations.BeforeMethod;
@@ -25,8 +25,6 @@ public class AccountServiceMoneyTransferTest extends MockitoTest {
 	private static final int DEFAULT_AMOUNT = 100;
 
 	@Mock
-	private SecurityContext securityContext;
-	@Mock
 	private AccountRepository accountRepository;
 	@Mock
 	private AccountMoneyTransferRepository accountMoneyTransferRepository;
@@ -39,7 +37,6 @@ public class AccountServiceMoneyTransferTest extends MockitoTest {
 
 	@BeforeMethod
 	public void prepare() {
-		givenUser();
 		givenFromAccount();
 		givenToAccount();
 		givenTransfer();
@@ -62,20 +59,6 @@ public class AccountServiceMoneyTransferTest extends MockitoTest {
 			expectedExceptions = AccountMoneyTransferException.class)
 	public void testTransferBetweenAccounts_WrongToAccount() throws AccountMoneyTransferException {
 		transfer.setToAccountId("unknown");
-		performTransfer();
-	}
-
-	@Test(description = "should fail if from account does not belong to user",
-			expectedExceptions = AccountMoneyTransferException.class)
-	public void testTransferBetweenAccounts_FromAccountHasWrongUser() throws AccountMoneyTransferException {
-		fromAccount.setUserId("unknown");
-		performTransfer();
-	}
-
-	@Test(description = "should fail if to account does not belong to user",
-			expectedExceptions = AccountMoneyTransferException.class)
-	public void testTransferBetweenAccounts_ToAccountHasWrongUser() throws AccountMoneyTransferException {
-		toAccount.setUserId("unknown");
 		performTransfer();
 	}
 
@@ -114,14 +97,6 @@ public class AccountServiceMoneyTransferTest extends MockitoTest {
 
 	private void givenToAccount() {
 		this.toAccount = givenAccount(TO_ACCOUNT_ID);
-	}
-
-	private void givenUser() {
-		User user = User.builder()
-				.id(USER_ID)
-				.build();
-
-		when(securityContext.getCurrentUser()).thenReturn(user);
 	}
 
 	private Account givenAccount(String accountId) {

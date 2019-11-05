@@ -1,9 +1,9 @@
-- transfer from account to account
-    - transaction
-- test coverage for account domain
+- spending api
+- income api
+- report between dates
+	- add dates to money transfer, spending, income
 
 Plans:
-    - user based (registration / login)
     - user can configure accounts
         - there should be two default accounts (salary account, cash)
         - user can create a account, select name, currency
