@@ -1,6 +1,6 @@
 package com.segg3r.expensetracker.security;
 
-import com.segg3r.expensetracker.security.exception.UserInputValidationException;
+import com.segg3r.expensetracker.exception.InputException;
 import org.springframework.util.MultiValueMap;
 
 import java.util.Objects;
@@ -18,9 +18,9 @@ public class UsernamePassword {
 		this.password = password;
 	}
 
-	UsernamePassword validate() throws UserInputValidationException {
+	UsernamePassword validate() {
 		if (username == null || password == null) {
-			throw new UserInputValidationException("Username or password is not provided.");
+			throw new InputException("Username or password is not provided.");
 		}
 
 		return this;

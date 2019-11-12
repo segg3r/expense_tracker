@@ -1,6 +1,6 @@
 package com.segg3r.expensetracker.security;
 
-import com.segg3r.expensetracker.security.exception.UserAuthenticationException;
+import com.segg3r.expensetracker.exception.AuthenticationException;
 import com.segg3r.expensetracker.user.User;
 import com.segg3r.expensetracker.user.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -23,7 +22,7 @@ public class SecurityContextImpl implements SecurityContext {
 	private UserRepository userRepository;
 
 	@Override
-	public void authenticate(UsernamePassword usernamePassword) throws UserAuthenticationException {
+	public void authenticate(UsernamePassword usernamePassword) {
 		String username = usernamePassword.getUsername();
 		String password = usernamePassword.getPassword();
 
@@ -31,9 +30,9 @@ public class SecurityContextImpl implements SecurityContext {
 		Authentication authentication = new UsernamePasswordAuthenticationToken(username, password);
 		try {
 			authentication = authenticationManager.authenticate(authentication);
-		} catch (AuthenticationException e) {
+		} catch (org.springframework.security.core.AuthenticationException e) {
 			log.warn("Could not authenticate user '" + username + "'. Username or password is not correct.", e);
-			throw new UserAuthenticationException("Username or password is not correct.");
+			throw new AuthenticationException("Username or password is not correct.");
 		}
 
 		log.info("Successfully authenticated user '" + usernamePassword.getUsername() + "'.");

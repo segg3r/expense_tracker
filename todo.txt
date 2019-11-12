@@ -1,3 +1,5 @@
+- copy spending categories into income categories
+
 - spending api
 - income api
 - report between dates

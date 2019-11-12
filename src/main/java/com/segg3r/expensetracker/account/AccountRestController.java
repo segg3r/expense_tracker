@@ -1,8 +1,5 @@
 package com.segg3r.expensetracker.account;
 
-import com.segg3r.expensetracker.account.exception.AccountCreationException;
-import com.segg3r.expensetracker.account.exception.AccountDeletionException;
-import com.segg3r.expensetracker.account.exception.AccountEditException;
 import com.segg3r.expensetracker.account.model.AccountCreationModel;
 import com.segg3r.expensetracker.security.SecurityContext;
 import com.segg3r.expensetracker.user.User;
@@ -29,24 +26,19 @@ public class AccountRestController {
 	@RequestMapping(method = RequestMethod.POST,
 			consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public Account createAccount(@Valid @RequestBody AccountCreationModel accountCreation) {
-		try {
-			User user = securityContext.getCurrentUser();
+		User user = securityContext.getCurrentUser();
 
-			log.info("Trying to create account " + accountCreation + " for user " + user.getName() + ".");
-			Account account = Account.builder()
-					.name(accountCreation.getName())
-					.userId(user.getId())
-					.currency(accountCreation.getCurrency())
-					.amount(0)
-					.build();
+		log.info("Trying to create account " + accountCreation + " for user " + user.getName() + ".");
+		Account account = Account.builder()
+				.name(accountCreation.getName())
+				.userId(user.getId())
+				.currency(accountCreation.getCurrency())
+				.amount(0)
+				.build();
 
-			Account createdAccount = accountService.createAccount(account);
-			log.info("Successfully created account " + createdAccount.getId() + ".");
-			return createdAccount;
-		} catch (AccountCreationException e) {
-			log.warn(e.getMessage(), e);
-			throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, e.getMessage());
-		}
+		Account createdAccount = accountService.createAccount(account);
+		log.info("Successfully created account " + createdAccount.getId() + ".");
+		return createdAccount;
 	}
 
 	@RequestMapping(path = "/{accountId}", method = RequestMethod.POST,
@@ -54,16 +46,11 @@ public class AccountRestController {
 	public Account editAccount(@PathVariable String accountId, @Valid @RequestBody Account account) {
 		validateCurrentUserIsAccountOwner(accountId);
 
-		try {
-			log.info("Trying to edit account " + accountId + ".");
+		log.info("Trying to edit account " + accountId + ".");
 
-			Account editedAccount = accountService.editAccount(account);
-			log.info("Successfully edited account " + accountId + ".");
-			return editedAccount;
-		} catch (AccountEditException e) {
-			log.warn(e.getMessage(), e);
-			throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, e.getMessage());
-		}
+		Account editedAccount = accountService.editAccount(account);
+		log.info("Successfully edited account " + accountId + ".");
+		return editedAccount;
 	}
 
 	@RequestMapping(path = "/{accountId}", method = RequestMethod.DELETE,
@@ -71,15 +58,10 @@ public class AccountRestController {
 	public Account deleteAccount(@PathVariable String accountId) {
 		validateCurrentUserIsAccountOwner(accountId);
 
-		try {
-			log.info("Trying to edit account '" + accountId + "'.");
-			Account deletedAccount = accountService.deleteAccount(accountId);
-			log.info("Successfully deleted account " + accountId + ".");
-			return deletedAccount;
-		} catch (AccountDeletionException e) {
-			log.warn(e.getMessage(), e);
-			throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, e.getMessage());
-		}
+		log.info("Trying to edit account '" + accountId + "'.");
+		Account deletedAccount = accountService.deleteAccount(accountId);
+		log.info("Successfully deleted account " + accountId + ".");
+		return deletedAccount;
 	}
 
 	@RequestMapping(path = "/{accountId}", method = RequestMethod.GET,

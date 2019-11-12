@@ -1,21 +1,16 @@
 package com.segg3r.expensetracker.security;
 
-import com.segg3r.expensetracker.security.exception.UserAuthenticationException;
-import com.segg3r.expensetracker.security.exception.UserInputValidationException;
-import com.segg3r.expensetracker.user.exception.UserRegistrationException;
+import com.segg3r.expensetracker.exception.InternalException;
 import com.segg3r.expensetracker.user.User;
 import com.segg3r.expensetracker.user.UserRegistrationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -32,39 +27,25 @@ public class AuthRestController {
 
 	@RequestMapping(value = "/login", method = RequestMethod.POST, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
 	public void login(HttpServletResponse response, @RequestParam MultiValueMap<String, String> map) {
-		try {
-			UsernamePassword usernamePassword = new UsernamePassword(map).validate();
-			authenticate(usernamePassword, response);
-		} catch (UserInputValidationException | UserAuthenticationException e) {
-			log.warn(e.getMessage(), e);
-			throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, e.getMessage());
-		}
+		UsernamePassword usernamePassword = new UsernamePassword(map).validate();
+		authenticate(usernamePassword, response);
 	}
 
 	@RequestMapping(value = "/register", method = RequestMethod.POST, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
 	public User register(HttpServletResponse response, @RequestParam MultiValueMap<String, String> map) {
-		try {
-			UsernamePassword usernamePassword = new UsernamePassword(map).validate();
-			User user = userRegistrationService.registerUser(usernamePassword);
-			authenticate(usernamePassword, response);
+		UsernamePassword usernamePassword = new UsernamePassword(map).validate();
+		User user = userRegistrationService.registerUser(usernamePassword);
+		authenticate(usernamePassword, response);
 
-			return user;
-		} catch (UserInputValidationException | UserRegistrationException e) {
-			log.warn(e.getMessage(), e);
-			throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, e.getMessage());
-		} catch (UserAuthenticationException e) {
-			log.error(e.getMessage(), e);
-			throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
-		}
+		return user;
 	}
 
-	private void authenticate(UsernamePassword usernamePassword, HttpServletResponse response)
-			throws UserAuthenticationException {
+	private void authenticate(UsernamePassword usernamePassword, HttpServletResponse response) {
 		try {
 			securityContext.authenticate(usernamePassword);
 			response.sendRedirect("/home");
 		} catch (IOException e) {
-			throw new UserAuthenticationException("Could not redirect user to /home page.");
+			throw new InternalException("Could not redirect user to /home page.");
 		}
 	}
 

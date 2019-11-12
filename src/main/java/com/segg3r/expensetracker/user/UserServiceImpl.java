@@ -1,7 +1,7 @@
 package com.segg3r.expensetracker.user;
 
+import com.segg3r.expensetracker.exception.InputException;
 import com.segg3r.expensetracker.security.UsernamePassword;
-import com.segg3r.expensetracker.user.exception.UserCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,12 +17,12 @@ public class UserServiceImpl implements UserService {
 	private PasswordEncoder passwordEncoder;
 
 	@Override
-	public User createUser(UsernamePassword usernamePassword) throws UserCreationException {
+	public User createUser(UsernamePassword usernamePassword) {
 		String username = usernamePassword.getUsername();
 		String password = usernamePassword.getPassword();
 
 		if (userExists(username)) {
-			throw new UserCreationException("User with username '" + username + "' already exists.");
+			throw new InputException("User with username '" + username + "' already exists.");
 		}
 
 		User user = User.builder()

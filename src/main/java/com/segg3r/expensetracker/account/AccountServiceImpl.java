@@ -1,22 +1,16 @@
 package com.segg3r.expensetracker.account;
 
-import com.segg3r.expensetracker.account.exception.AccountCreationException;
-import com.segg3r.expensetracker.account.exception.AccountDeletionException;
-import com.segg3r.expensetracker.account.exception.AccountEditException;
-import com.segg3r.expensetracker.accountmoneytransfer.exception.AccountMoneyTransferException;
 import com.segg3r.expensetracker.account.model.AccountCreationModel;
 import com.segg3r.expensetracker.accountmoneytransfer.AccountMoneyTransfer;
 import com.segg3r.expensetracker.accountmoneytransfer.AccountMoneyTransferRepository;
-import com.segg3r.expensetracker.security.SecurityContext;
+import com.segg3r.expensetracker.exception.InputException;
 import com.segg3r.expensetracker.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.Valid;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class AccountServiceImpl implements AccountService {
@@ -32,8 +26,6 @@ public class AccountServiceImpl implements AccountService {
 	private AccountRepository accountRepository;
 	@Autowired
 	private AccountMoneyTransferRepository accountMoneyTransferRepository;
-	@Autowired
-	private SecurityContext securityContext;
 
 	@Override
 	public Optional<Account> getAccount(String id) {
@@ -41,7 +33,7 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
-	public void createDefaultUserAccounts(User user) throws AccountCreationException {
+	public void createDefaultUserAccounts(User user) {
 		for (AccountCreationModel accountMetadata : DEFAULT_USER_ACCOUNTS) {
 			Account currency = Account.builder()
 					.userId(user.getId())
@@ -54,9 +46,9 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
-	public Account createAccount(@Valid Account account) throws AccountCreationException {
+	public Account createAccount(@Valid Account account) {
 		if (accountRepository.findByUserIdAndName(account.getUserId(), account.getName()).isPresent()) {
-			throw new AccountCreationException("Could not create account '" + account.getName() + "'. " +
+			throw new InputException( "Could not create account '" + account.getName() + "'. " +
 					"Such account already exists.");
 		}
 
@@ -64,10 +56,10 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
-	public Account editAccount(@Valid Account account) throws AccountEditException {
+	public Account editAccount(@Valid Account account) {
 		Optional<Account> existingAccount = accountRepository.findByUserIdAndName(account.getUserId(), account.getName());
 		if (existingAccount.isPresent() && !existingAccount.get().getId().equals(account.getId())) {
-			throw new AccountEditException("Could not edit account '" + account.getName() + "'. " +
+			throw new InputException("Could not edit account '" + account.getName() + "'. " +
 					"Account with such name already exists for user " + account.getUserId() + ".");
 		}
 
@@ -76,9 +68,9 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
-	public Account deleteAccount(String accountId) throws AccountDeletionException {
+	public Account deleteAccount(String accountId) {
 		Account existingAccount = accountRepository.findById(accountId)
-				.orElseThrow(() -> new AccountDeletionException("Could not find account " + accountId + " to delete."));
+				.orElseThrow(() -> new InputException("Could not find account " + accountId + " to delete."));
 
 		accountRepository.delete(existingAccount);
 		return existingAccount;
@@ -89,8 +81,9 @@ public class AccountServiceImpl implements AccountService {
 		accountRepository.deleteByUserId(user.getId());
 	}
 
+	@Transactional
 	@Override
-	public AccountMoneyTransfer transferBetweenAccounts(AccountMoneyTransfer transfer) throws AccountMoneyTransferException {
+	public AccountMoneyTransfer transferBetweenAccounts(AccountMoneyTransfer transfer) {
 		validateAccountMoneyTransfer(transfer);
 		return performAccountMoneyTransfer(transfer);
 	}
@@ -107,18 +100,20 @@ public class AccountServiceImpl implements AccountService {
 				.isPresent();
 	}
 
-	private void validateAccountMoneyTransfer(AccountMoneyTransfer transfer) throws AccountMoneyTransferException {
+	private void validateAccountMoneyTransfer(AccountMoneyTransfer transfer) {
 		Account from = getTransferFromAccount(transfer);
 		validateAccountHaveEnoughMoney(from, transfer.getAmount());
 	}
 
-	private void validateAccountHaveEnoughMoney(Account from, long amount) throws AccountMoneyTransferException {
+	private void validateAccountHaveEnoughMoney(Account from, long amount) {
 		if (from.getAmount() < amount) {
-			throw new AccountMoneyTransferException("Account '" + from.getName() + "' does not have enough currency.");
+			throw new InputException("Account '" + from.getName() + "' does not have enough currency.");
 		}
 	}
 
-	private AccountMoneyTransfer performAccountMoneyTransfer(AccountMoneyTransfer transfer) throws AccountMoneyTransferException {
+	private AccountMoneyTransfer performAccountMoneyTransfer(AccountMoneyTransfer transfer) {
+		transfer.setDate(new Date());
+
 		Account from = getTransferFromAccount(transfer);
 		from.subtractMoney(transfer.getAmount());
 		accountRepository.save(from);
@@ -130,14 +125,14 @@ public class AccountServiceImpl implements AccountService {
 		return accountMoneyTransferRepository.save(transfer);
 	}
 
-	private Account getTransferFromAccount(AccountMoneyTransfer accountMoneyTransfer) throws AccountMoneyTransferException {
+	private Account getTransferFromAccount(AccountMoneyTransfer accountMoneyTransfer) {
 		return accountRepository.findById(accountMoneyTransfer.getFromAccountId())
-				.orElseThrow(() -> new AccountMoneyTransferException("Could not find account to transfer money from."));
+				.orElseThrow(() -> new InputException("Could not find account to transfer money from."));
 	}
 
-	private Account getTransferToAccount(AccountMoneyTransfer accountMoneyTransfer) throws AccountMoneyTransferException {
+	private Account getTransferToAccount(AccountMoneyTransfer accountMoneyTransfer) {
 		return accountRepository.findById(accountMoneyTransfer.getToAccountId())
-				.orElseThrow(() -> new AccountMoneyTransferException("Could not find account to transfer money to."));
+				.orElseThrow(() -> new InputException("Could not find account to transfer money to."));
 	}
 
 }

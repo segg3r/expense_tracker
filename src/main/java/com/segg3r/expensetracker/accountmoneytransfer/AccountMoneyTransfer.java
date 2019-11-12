@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import java.util.Date;
 
 @Data
 @Builder
@@ -29,5 +30,6 @@ public class AccountMoneyTransfer {
 	 */
 	@Min(value = 0, message = "Conversion rate should be positive.")
 	private int conversionRate;
+	private Date date;
 
 }
