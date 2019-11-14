@@ -1,9 +1,6 @@
-- copy spending categories into income categories
-
-- spending api
-- income api
-- report between dates
-	- add dates to money transfer, spending, income
+- spendings (SpendingService) / incomes
+- add dates to money transfer, spending, income
+- reporting api
 
 Plans:
     - user can configure accounts

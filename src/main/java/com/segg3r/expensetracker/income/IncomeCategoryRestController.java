@@ -1,8 +1,8 @@
-package com.segg3r.expensetracker.spending;
+package com.segg3r.expensetracker.income;
 
 import com.segg3r.expensetracker.exception.InputException;
+import com.segg3r.expensetracker.income.model.IncomeCategoryCreationModel;
 import com.segg3r.expensetracker.security.SecurityContext;
-import com.segg3r.expensetracker.spending.model.SpendingCategoryCreationModel;
 import com.segg3r.expensetracker.user.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,72 +16,72 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/spending_categories")
-public class SpendingCategoryRestController {
+@RequestMapping("/api/income_categories")
+public class IncomeCategoryRestController {
 
 	@Autowired
 	private SecurityContext securityContext;
 	@Autowired
-	private SpendingCategoryService spendingCategoryService;
+	private IncomeCategoryService incomeCategoryService;
 
 	@RequestMapping(method = RequestMethod.POST,
 			consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public SpendingCategory createSpendingCategory(@Valid @RequestBody SpendingCategoryCreationModel categoryModel) {
+	public IncomeCategory createIncomeCategory(@Valid @RequestBody IncomeCategoryCreationModel categoryModel) {
 		User user = securityContext.getCurrentUser();
 
 		log.info("Trying to create spending category " + categoryModel + " for user " + user.getName() + ".");
-		SpendingCategory spendingCategory = SpendingCategory.builder()
+		IncomeCategory incomeCategory = IncomeCategory.builder()
 				.name(categoryModel.getName())
 				.userId(user.getId())
 				.build();
 
-		SpendingCategory createdSpendingCategory = spendingCategoryService.createSpendingCategory(spendingCategory);
-		log.info("Successfully created spending category " + createdSpendingCategory.getId() + ".");
-		return createdSpendingCategory;
+		IncomeCategory createdIncomeCategory = incomeCategoryService.createIncomeCategory(incomeCategory);
+		log.info("Successfully created income category " + createdIncomeCategory.getId() + ".");
+		return createdIncomeCategory;
 	}
 
 	@RequestMapping(path = "/{categoryId}", method = RequestMethod.POST,
 			consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public SpendingCategory editSpendingCategory(@PathVariable String categoryId, @Valid @RequestBody SpendingCategory category) {
+	public IncomeCategory editIncomeCategory(@PathVariable String categoryId, @Valid @RequestBody IncomeCategory category) {
 		validateCurrentUserIsCategoryOwner(categoryId);
 
-		log.info("Trying to edit spending category " + categoryId + ".");
+		log.info("Trying to edit income category " + categoryId + ".");
 
-		SpendingCategory editedCategory = spendingCategoryService.editSpendingCategory(category);
-		log.info("Successfully edited spending category " + categoryId + ".");
+		IncomeCategory editedCategory = incomeCategoryService.editIncomeCategory(category);
+		log.info("Successfully edited income category " + categoryId + ".");
 		return editedCategory;
 	}
 
 	@RequestMapping(path = "/{categoryId}", method = RequestMethod.DELETE,
 			consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public SpendingCategory deleteSpendingCategory(@PathVariable String categoryId) {
+	public IncomeCategory deleteIncomeCategory(@PathVariable String categoryId) {
 		validateCurrentUserIsCategoryOwner(categoryId);
 
-		log.info("Trying to edit spending category '" + categoryId + "'.");
-		SpendingCategory deletedSpendingCategory = spendingCategoryService.deleteSpendingCategory(categoryId);
-		log.info("Successfully deleted spending category " + categoryId + ".");
-		return deletedSpendingCategory;
+		log.info("Trying to edit income category '" + categoryId + "'.");
+		IncomeCategory deleteIncomeCategory = incomeCategoryService.deleteIncomeCategory(categoryId);
+		log.info("Successfully deleted income category " + categoryId + ".");
+		return deleteIncomeCategory;
 	}
 
 	@RequestMapping(path = "/{categoryId}", method = RequestMethod.GET,
 			consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public SpendingCategory getSpendingCategoryById(@PathVariable String categoryId) {
+	public IncomeCategory getIncomeCategoryById(@PathVariable String categoryId) {
 		validateCurrentUserIsCategoryOwner(categoryId);
-		return spendingCategoryService.getSpendingCategoryById(categoryId)
+		return incomeCategoryService.getIncomeCategoryById(categoryId)
 				.orElseThrow(() -> new InputException("Could not find category " + categoryId + "."));
 	}
 
 	@RequestMapping(method = RequestMethod.GET,
 			consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public List<SpendingCategory> getUserSpendingCategories() {
+	public List<IncomeCategory> getUserIncomeCategories() {
 		User user = securityContext.getCurrentUser();
-		return spendingCategoryService.getUserSpendingCategories(user);
+		return incomeCategoryService.getUserIncomeCategories(user);
 	}
 
 	private void validateCurrentUserIsCategoryOwner(String categoryId) {
 		User user = securityContext.getCurrentUser();
-		if (!spendingCategoryService.isUserCategoryOwner(user, categoryId)) {
-			throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Current user does not have permission for the spending category.");
+		if (!incomeCategoryService.isUserCategoryOwner(user, categoryId)) {
+			throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Current user does not have permission for the income category.");
 		}
 	}
 

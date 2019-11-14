@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface SpendingCategoryService {
-	Optional<SpendingCategory> getAccount(String id);
+	Optional<SpendingCategory> getSpendingCategoryById(String id);
 	void createDefaultSpendingCategories(User user);
 	SpendingCategory createSpendingCategory(SpendingCategory category);
 	SpendingCategory editSpendingCategory(SpendingCategory category);

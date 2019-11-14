@@ -24,7 +24,7 @@ public class SpendingCategoryServiceImpl implements SpendingCategoryService {
 	private SpendingCategoryRepository spendingCategoryRepository;
 
 	@Override
-	public Optional<SpendingCategory> getAccount(String id) {
+	public Optional<SpendingCategory> getSpendingCategoryById(String id) {
 		return spendingCategoryRepository.findById(id);
 	}
 
